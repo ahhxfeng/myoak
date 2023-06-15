@@ -17,7 +17,7 @@ def create_app(config_file):
     app.config['SQLALCHEMY_DATABASE_URI'] = config.DB_URI
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
     # oak_home.warning("waring!!! for test")
-    oak_home.info("try to log someting")
+    oak_home.info("try to log someting",exc_info=1)
     oak_home.info("try to log some useful information")
     oak_home.info(app.config)
     
