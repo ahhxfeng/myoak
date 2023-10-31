@@ -8,6 +8,9 @@ import logging
 
 
 def get_logger(name, log_file, level=logging.DEBUG):
+    """
+    generater logger 
+    """
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
