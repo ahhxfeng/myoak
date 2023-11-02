@@ -1,5 +1,6 @@
 #coding=utf-8
 
+<<<<<<< HEAD
 import logging
 
 def setup_logger(name: str, log_file: str, level=logging.INFO):
@@ -24,3 +25,13 @@ def setup_logger(name: str, log_file: str, level=logging.INFO):
     return logger
 
     
+=======
+# TODO
+# done in home
+import logging
+
+
+def setup_logger(name:str, file:str, level=logging.INFO):
+    logger = logging.getLogger()
+    return logger 
+>>>>>>> fb9384fbe42c6cbb3e0656ecc8a01519dfab7551
