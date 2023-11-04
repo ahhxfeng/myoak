@@ -3,6 +3,8 @@
 import argparse
 import time
 
+import logger
+
 def main():
     parser = argparse.ArgumentParser(description="process some interger about the miner os program")
     parser.add_argument("--command_interval", type=int, default=5, help="interval between command loop resquest(second)")
@@ -12,4 +14,6 @@ def main():
     args = parser.parse_args()
 
     time.sleep(5)
+    # client collector
+
 
