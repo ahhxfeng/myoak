@@ -2,7 +2,7 @@ package config
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"os"
 )
 
@@ -98,8 +98,9 @@ func (c *GlobalConfig) LoadFromFile(file string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 
-	content, err := ioutil.ReadAll(f)
+	content, err := io.ReadAll(f)
 	if err != nil {
 		return err
 	}
@@ -114,6 +115,7 @@ func (c *GlobalConfig) SaveToFile(file string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	content, err := json.Marshal(c)
 	if err != nil {
 		return err
