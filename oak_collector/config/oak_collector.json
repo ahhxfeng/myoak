@@ -25,6 +25,7 @@
 	"redis_idle_timeout": 60,
 	"redis_rig_ttl": 3600,
 	"redis_cmd_ttl": 60,
+    
 	"log_dir": "./log",
 	"log_level": "debug",
 	"win_log_level": "warning",
