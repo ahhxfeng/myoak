@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"runtime"
 
 	"github.com/ahhxfeng/myoak/oak_collector/config"
 	. "github.com/ahhxfeng/myoak/oak_collector/log"
@@ -34,7 +35,6 @@ func doConfig() (quit bool) {
 	err := config.Conf.LoadFromFile(ConfigFilePath)
 	if err != nil {
 		Logger.Error(err.Error())
-		return false
 	}
 	if UpdateConfig {
 		ConfigBackup := ConfigFilePath + ".bak"
@@ -66,5 +66,16 @@ func doConfig() (quit bool) {
 // 	PublicMux := http.NewServeMux()
 // 	PrivateMux := http.NewServeMux()
 
-// 	PublicMux.Handle("/version", )
+// 	PublicMux.Handle("/version", VersionHandler)
+
 // }
+
+func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	flag.Parse()
+	if doConfig() {
+		return
+	}
+
+	
+}
