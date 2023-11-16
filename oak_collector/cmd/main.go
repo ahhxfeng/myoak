@@ -7,8 +7,10 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/ahhxfeng/myoak/oak_collector/api"
 	"github.com/ahhxfeng/myoak/oak_collector/config"
 	. "github.com/ahhxfeng/myoak/oak_collector/log"
+	"github.com/fvbock/endless"
 )
 
 var (
@@ -67,6 +69,11 @@ func doConfig() (quit bool) {
 // 	PrivateMux := http.NewServeMux()
 
 // 	PublicMux.Handle("/version", VersionHandler)
+// 	PublicMux.Handle("/command", CommandHandler)
+// 	PublicMux.Handle("/report", ReportHandler)
+// 	PublicMux.Handle("/upload", UploadHandler)
+// 	PrivateMux.Handle("/notify/rig", RigHandler)
+// 	PrivateMux.Handle("/notify/rig_group", RigGroupHandler)
 
 // }
 
@@ -77,5 +84,9 @@ func main() {
 		return
 	}
 
-	
+	router := api.SetupRouter()
+
+	endless.ListenAndServe("0.0.0.0:8080", router)
+	Logger.Info("http server start ")
+
 }
