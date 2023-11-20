@@ -36,6 +36,7 @@ class Rig(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    device_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
     name = db.Column(db.String(MAX_RIG_NAME), nullable=False, server_default='')
     notes = db.Column(db.String(MAX_NOTES), nullable=False, server_default='')
     status = db.Column(db.String(32), nullable=False, server_default='new') # new, normal, delete
