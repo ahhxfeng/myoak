@@ -3,7 +3,7 @@
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import UserMixin, AnonymousUserMixin
 
-from db import db
+from oak_home.init_db import db
 
 
 class User(UserMixin, db.Model):
@@ -16,8 +16,8 @@ class User(UserMixin, db.Model):
     telephone = db.Column(db.String(64), unique=True, server_default="")
     
     # 反链
-    wallet = db.relationship("Wallet", backref="wallets")
-    rig = db.relationship("Rig", backref="rigs")
+    wallet = db.relationship("Wallet", backref="user", lazy="dynmic")
+    rig = db.relationship("Rig", backref="user", lazy="dynmic")
 
     @property
     def password():
@@ -67,7 +67,7 @@ class RigGroup(db.Model):
     status = db.Column(db.String(32), nullable=False, server_default='normal') # normal, delete
 
     # 反链
-    rig = db.relationship("Rig", backref="rigs")
+    rig = db.relationship("Rig", backref="rig_group")
 
     # config是json, 包含type, main_pool, main_protocol, spare_pool, spare_protocol
     config = db.Column(db.String(MAX_CONFIG), nullable=False, server_default='{}')
@@ -78,6 +78,7 @@ class RigFailures(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     error_time = db.Column(db.DateTime, nullable=False)  # 对齐到小时
+    device_id = db.Column(db.String(64), nullable=False)
     system_error = db.Column(db.Integer, nullable=False, server_default='0')
     python_error = db.Column(db.Integer, nullable=False, server_default='0')
     normal_claymore_error = db.Column(db.Integer, nullable=False, server_default='0')
@@ -96,19 +97,20 @@ class Wallet(db.Model):
     MAX_WALLET_ADDRESS = 128
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullalbe=False)
     wallet_name = db.Column(db.String(MAX_WALLET_NAME), nullable=False, server_default='')
     wallet_address = db.Column(db.String(MAX_WALLET_ADDRESS), nullable=False)
     wallet_type = db.Column(db.String(64), nullable=False)
     status = db.Column(db.String(32), nullable=False, server_default='normal') # normal, delete
 
+    # 外键
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"), nullable=False)
 
 class GroupWallet(db.Model):
     __tablename__ = 'oak_group_wallet'
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    group_id = db.Column(db.Integer, db.ForeignKey("oak_rig_group.id"), nullable=False)
-    wallet_id = db.Column(db.Integer, db.ForeignKey("oak_wallet.id"), nullable=False)
+    group_id = db.Column(db.Integer, db.ForeignKey("rig_groups.id"), nullable=False)
+    wallet_id = db.Column(db.Integer, db.ForeignKey("wallets.id"), nullable=False)
 
     # 反链
     rig_group = db.relationship("RigGroup", backref=db.backref("group_wallet"))
@@ -127,12 +129,12 @@ class RigGroupStatsHourly(db.Model):
     """
     rig_group统计信息的小时级上卷-与wallet无关的部分
     """
-    __tablename__ = 'oak_rig_group_stats_hourly'
+    __tablename__ = 'rig_group_stats_hourly'
     
     # 键
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     log_time = db.Column(db.DateTime, nullable=False)  # 对齐到小时
-    rig_group_id = db.Column(db.Integer, db.ForeignKey("oak_rig_group.id"), nullable=False)
+    rig_group_id = db.Column(db.Integer, db.ForeignKey("rig_groups.id"), nullable=False)
     
     # 值
     sample_count = db.Column(db.Integer, nullable=False, default=0)
@@ -166,12 +168,12 @@ class RigGroupWalletStatsHourly(db.Model):
     """
     rig_group统计信息的小时级上卷-与wallet有关的部分
     """
-    __tablename__ = 'oak_rig_group_wallet_stats_hourly'
+    __tablename__ = 'rig_group_wallet_stats_hourly'
     
     # 键
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     log_time = db.Column(db.DateTime, nullable=False)  # 对齐到小时
-    rig_group_id = db.Column(db.Integer, db.ForeignKey("oak_rig_group.id"), nullable=False)
+    rig_group_id = db.Column(db.Integer, db.ForeignKey("rig_groups.id"), nullable=False)
     wallet_type = db.Column(db.String(64), nullable=False)
 
     # 值

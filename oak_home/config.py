@@ -1,6 +1,8 @@
 #coding=utf-8
 
-DB_URI = "mysql+pymysql://think:123456@192.168.31.60/oak"
+# DB_URI = "mysql+pymysql://think:123456@192.168.31.60/oak"
+DB_URI = "mysql+pymysql://think:123456@localhost/oak?charset=utf8"
+
 REDIS_HOST = "localhost"
 REDIS_PORT = 6379
 APP_FLASK_KEY = "OZyUa72B824FzrIG"
