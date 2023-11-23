@@ -14,6 +14,8 @@ class User(UserMixin, db.Model):
     status = db.Column(db.String(64), nullable=False,
                        server_default="normal")  # normal, delete
     telephone = db.Column(db.String(64), unique=True, server_default="")
+    
+    # 反链
     wallet = db.relationship("Wallet", backref="wallets")
     rig = db.relationship("Rig", backref="rigs")
 
@@ -35,7 +37,6 @@ class Rig(db.Model):
     MAX_NOTES = 4096
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
     device_id = db.Column(db.String(64), unique=True, nullable=False, index=True)
     name = db.Column(db.String(MAX_RIG_NAME), nullable=False, server_default='')
     notes = db.Column(db.String(MAX_NOTES), nullable=False, server_default='')
@@ -44,6 +45,10 @@ class Rig(db.Model):
     power_status = db.Column(db.String(1024), nullable=True, server_default='{"mb_state": "on", "mb_time": 0}') # mb_time: timestamp, mb_state: on/off/reboot
     last_file = db.Column(db.String(128), nullable=False, server_default='0000000000.gz')
 
+    # 外键
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+    rig_group_id = db.Column(db.Integer, db.ForeignKey("rig_groups.id"))
+    
     # need to know more ?
     __table_args__ = (
         db.Index('i_user_status', user_id, status),
@@ -60,6 +65,9 @@ class RigGroup(db.Model):
     group_name = db.Column(db.String(MAX_GROUP_NAME), nullable=False, server_default='')
     notes = db.Column(db.String(MAX_NOTES), nullable=False, server_default='')
     status = db.Column(db.String(32), nullable=False, server_default='normal') # normal, delete
+
+    # 反链
+    rig = db.relationship("Rig", backref="rigs")
 
     # config是json, 包含type, main_pool, main_protocol, spare_pool, spare_protocol
     config = db.Column(db.String(MAX_CONFIG), nullable=False, server_default='{}')
