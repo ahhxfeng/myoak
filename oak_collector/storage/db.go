@@ -3,7 +3,9 @@ package storage
 import (
 	"database/sql"
 	"sync"
+	"time"
 
+	"github.com/ahhxfeng/myoak/oak_collector/config"
 	"github.com/ahhxfeng/myoak/oak_collector/log"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -45,10 +47,26 @@ func InitDb() {
 	dirtyRig := make(map[string]*Rig)
 	rigGroupCache := make(map[string]*RigGroup)
 
+	go func() {
+		for {
+			DbDownload()
+			time.Sleep(time.Duration(config.Conf.DatabaseDownloadInterval) * time.Second)
+		}
+	}()
+
+	go func() {
+		for {
+			DbUpload()
+			time.Sleep(time.Duration(config.Conf.DatabaseUploadInterval) * time.Second)
+		}
+	}()
+
 }
 
 func ConnectIfNil() (Db *gorm.DB, err error) {
-	dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	// dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
+	// dsn := //think:123456@localhost/oak?charset=utf8"
+	dsn := "think:123456@tcp(127.0.0.1:3306)/oak?charset=utf-8mb4&parseTime=True&loc=Local"
 	SqlDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Logger.Info("mysql connect fialed")
