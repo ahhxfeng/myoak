@@ -27,6 +27,8 @@ func SetupRouter() *gin.Engine {
 
 	// router
 	r.GET("/version", GetVersion)
+	r.GET("/", OnIndex)
+	// r.GET("/report", OnReport)
 	r.POST("/report", OnReport)
 
 	return r

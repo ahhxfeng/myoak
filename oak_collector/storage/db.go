@@ -13,7 +13,7 @@ import (
 
 var (
 	Db            *gorm.DB
-	cacheLock     *sync.Mutex
+	cacheLock     sync.RWMutex
 	userCache     map[string]*User  // username -> user
 	rigCache      map[string]*Rig   // deviceId -> Rig
 	dirtyRig      map[string]*Rig   // deviceId -> rig
@@ -42,10 +42,10 @@ type RigGroup struct {
 }
 
 func InitDb() {
-	userCache := make(map[string]*User)
-	rigCache := make(map[string]*Rig)
-	dirtyRig := make(map[string]*Rig)
-	rigGroupCache := make(map[string]*RigGroup)
+	// userCache := make(map[string]*User)
+	// rigCache := make(map[string]*Rig)
+	// dirtyRig := make(map[string]*Rig)
+	// rigGroupCache := make(map[string]*RigGroup)
 
 	go func() {
 		for {
@@ -66,7 +66,7 @@ func InitDb() {
 func ConnectIfNil() (Db *gorm.DB, err error) {
 	// dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 	// dsn := //think:123456@localhost/oak?charset=utf8"
-	dsn := "think:123456@tcp(127.0.0.1:3306)/oak?charset=utf-8mb4&parseTime=True&loc=Local"
+	dsn := "think:123456@tcp(127.0.0.1:3306)/oak?charset=utf8mb4&parseTime=True&loc=Local"
 	SqlDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Logger.Info("mysql connect fialed")
@@ -99,7 +99,7 @@ func DbDownload() {
 	// user
 	newUserCache := make(map[string]*User)
 	err = func() error {
-		rows, err := Db.Table("oak_user").Select("id", "user_name", "status").Rows()
+		rows, err := Db.Table("users").Select("id", "user_name", "status").Rows()
 		if err != nil {
 			log.Logger.Warn(err.Error())
 			return err
@@ -128,7 +128,7 @@ func DbDownload() {
 	newDeviceCache := make(map[string]*Rig)
 
 	err = func() error {
-		rows, err := Db.Table("oak_rig").Select("id", "user_id", "rig_group_id", "device_id").Rows()
+		rows, err := Db.Table("rigs").Select("id", "user_id", "rig_group_id", "device_id").Rows()
 		if err != nil {
 			log.Logger.Warn(err.Error())
 			return err
@@ -146,11 +146,16 @@ func DbDownload() {
 		return nil
 	}()
 
+	if err != nil {
+		log.Logger.Warn("update oak_rig failed", err.Error())
+		return
+	}
+
 	// RigGroup
 
 	newRigGroupCache := make(map[int]*RigGroup)
 	err = func() error {
-		rows, err := Db.Table("oak_rig_group").Select("id", "user_id", "config", "status").Rows()
+		rows, err := Db.Table("rig_groups").Select("id", "user_id", "config", "status").Rows()
 		if err != nil {
 			log.Logger.Warn(err.Error())
 			return err
@@ -167,6 +172,11 @@ func DbDownload() {
 		}
 		return nil
 	}()
+
+	if err != nil {
+		log.Logger.Warn("update oak_rig_group failed", err.Error())
+		return
+	}
 
 	//save
 	cacheLock.Lock()
@@ -200,8 +210,8 @@ func DbUpload() {
 }
 
 func DbCheckUserPrivilege(userName string) (user *User, ok bool) {
-	cacheLock.Lock()
-	defer cacheLock.Unlock()
+	cacheLock.RLock()
+	defer cacheLock.RUnlock()
 	user, ok = userCache[userName]
 	if !ok {
 		log.Logger.Warn("user not found:", userName)
@@ -215,8 +225,8 @@ func DbCheckUserPrivilege(userName string) (user *User, ok bool) {
 
 // 不存在的rig不会报错（discovery的场景）
 func DbCheckRigPrivilege(user *User, deviceId string) (rig *Rig, ok bool) {
-	cacheLock.Lock()
-	defer cacheLock.Unlock()
+	cacheLock.RLock()
+	defer cacheLock.RUnlock()
 	rig, ok = rigCache[deviceId]
 	if !ok {
 		rig, ok = dirtyRig[deviceId]
