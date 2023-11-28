@@ -10,6 +10,7 @@ import (
 	"github.com/ahhxfeng/myoak/oak_collector/api"
 	"github.com/ahhxfeng/myoak/oak_collector/config"
 	. "github.com/ahhxfeng/myoak/oak_collector/log"
+	"github.com/ahhxfeng/myoak/oak_collector/storage"
 	"github.com/fvbock/endless"
 )
 
@@ -85,6 +86,9 @@ func main() {
 	}
 
 	router := api.SetupRouter()
+	storage.InitDb()
+	storage.InitRedis()
+	storage.InitStatsd()
 
 	endless.ListenAndServe("0.0.0.0:8080", router)
 	Logger.Info("http server start ")
