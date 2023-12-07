@@ -66,6 +66,9 @@ class RigGroup(db.Model):
     notes = db.Column(db.String(MAX_NOTES), nullable=False, server_default='')
     status = db.Column(db.String(32), nullable=False, server_default='normal') # normal, delete
 
+    # 外键
+    user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+
     # 反链
     rig = db.relationship("Rig", backref="rig_group")
 
