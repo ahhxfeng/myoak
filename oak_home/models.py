@@ -18,6 +18,7 @@ class User(UserMixin, db.Model):
     # 反链
     wallet = db.relationship("Wallet", backref="user", lazy="dynmic")
     rig = db.relationship("Rig", backref="user", lazy="dynmic")
+    rig_group = db.relationship("RigGroup", backref="user", lazy="dynmic")
 
     @property
     def password():
@@ -67,10 +68,14 @@ class RigGroup(db.Model):
     status = db.Column(db.String(32), nullable=False, server_default='normal') # normal, delete
 
     # 外键
+<<<<<<< HEAD
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
+=======
+    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+>>>>>>> 5af5bad (update modles)
 
     # 反链
-    rig = db.relationship("Rig", backref="rig_group")
+    rig = db.relationship("Rig", backref="rig_group", lazy="dynmic")
 
     # config是json, 包含type, main_pool, main_protocol, spare_pool, spare_protocol
     config = db.Column(db.String(MAX_CONFIG), nullable=False, server_default='{}')
