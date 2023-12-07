@@ -21,5 +21,6 @@ if __name__ == "__main__":
         from oak_home.models import *
         
         db.create_all()
+        # db.drop_all()
         logger.info("create tables done")
     app.run(host="0.0.0.0", port=8080, debug=True)
