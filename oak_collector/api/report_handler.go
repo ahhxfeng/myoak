@@ -52,12 +52,13 @@ func OnReport(c *gin.Context) {
 		log.Logger.Warn(err.Error())
 		c.JSON(500, FormatReponse.NewResponse(500, "internal error", ""))
 		return
-	} else {
-		// debug
-		c.JSON(200, FormatReponse.NewResponse(200, "success bind", reportData))
-		log.Logger.Warn("try to print the request", reportData)
-		// return
 	}
+	// } else {
+	// 	// debug
+	// 	// c.JSON(200, FormatReponse.NewResponse(200, "success bind", reportData))
+	// 	// log.Logger.Warn("try to print the request", reportData)
+	// 	// return
+	// }
 
 	if reportData.UserName == "" || reportData.DeviceId == "" {
 		// debug
@@ -153,7 +154,7 @@ func OnReport(c *gin.Context) {
 		}
 
 		if len(updateRedis) > 1 {
-			log.Logger.Info("report", reportData.UserName, reportData.DeviceId, updateRedis)
+			log.Logger.Info("report: \n", "user: ", reportData.UserName, "device: ", reportData.DeviceId, "info", updateRedis)
 			ctx := context.Background()
 			err := storage.RedisUpdateRig(ctx, reportData.DeviceId, updateRedis)
 			if err != nil {
@@ -163,6 +164,7 @@ func OnReport(c *gin.Context) {
 		}
 
 		// 心跳
+		log.Logger.Info("\n try to touch new rigs \n")
 		storage.DbTouchRig(user, reportData.DeviceId)
 		storage.RedisTouchRig(context.Background(), reportData.DeviceId)
 

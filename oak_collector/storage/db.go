@@ -88,7 +88,8 @@ func DbDownload() {
 	// Db 全量更新 慢！
 	log.Logger.Info("Db downlaod start !")
 	defer func() {
-		log.Logger.Info("Db downlaod complted: got %d users %d rigs %d rigGroups", len(userCache), len(rigCache), len(rigGroupCache))
+		log.Logger.Info("Db downlaod complted", "users:", len(userCache), "rigs: ", len(rigCache), "rigGroups: ", len(rigGroupCache))
+
 	}()
 
 	Db, err := ConnectIfNil()
@@ -119,7 +120,7 @@ func DbDownload() {
 	}()
 
 	if err != nil {
-		log.Logger.Warn("update oak_user failed", err.Error())
+		log.Logger.Warn("update oak_user failed: ", err.Error(), "")
 		return
 	}
 
@@ -147,7 +148,7 @@ func DbDownload() {
 	}()
 
 	if err != nil {
-		log.Logger.Warn("update oak_rig failed", err.Error())
+		log.Logger.Warn("update oak_rig failed: ", err.Error(), "")
 		return
 	}
 
@@ -174,7 +175,7 @@ func DbDownload() {
 	}()
 
 	if err != nil {
-		log.Logger.Warn("update oak_rig_group failed", err.Error())
+		log.Logger.Warn("update oak_rig_group failed", err.Error(), "")
 		return
 	}
 
@@ -192,10 +193,14 @@ func DbUpload() {
 	defer cacheLock.Unlock()
 	if len(dirtyRig) == 0 {
 		// 没有发现新的rig
+		log.Logger.Info("no new rigs , Dbupload exit!!!")
 		return
 	}
 
-	log.Logger.Info("Db upload start ! %d rig discovery", len(dirtyRig), dirtyRig)
+	// log.Logger.Info("Db upload start !", len(dirtyRig), dirtyRig)
+	log.Logger.Info("DB upload start !!!\n")
+	log.Logger.Info("found new rigs", "rigs amount", len(dirtyRig))
+	log.Logger.Info("Dirty rigs", "info", dirtyRig)
 	for _, rig := range dirtyRig {
 		res := Db.Exec("insert into oak_rig (user_id, device_id, status) values (?, ?, ?)", rig.UserId, rig.DeviceId, rig.Status)
 		res.Commit()
@@ -214,7 +219,7 @@ func DbCheckUserPrivilege(userName string) (user *User, ok bool) {
 	defer cacheLock.RUnlock()
 	user, ok = userCache[userName]
 	if !ok {
-		log.Logger.Warn("user not found:", userName)
+		log.Logger.Warn("user not found:", "user: ", userName)
 		return
 	} else if user.Status != "normal" {
 		ok = false
@@ -257,6 +262,7 @@ func DbTouchRig(user *User, deviceId string) {
 	}
 
 	// new rig insert into dirtyrig first
+	log.Logger.Info("\n Create new rig in dirty rig \n")
 	dirtyRig[deviceId] = &Rig{
 		UserId:   user.Id,
 		DeviceId: deviceId,
