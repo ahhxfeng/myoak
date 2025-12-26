@@ -1,37 +1,25 @@
 #coding=utf-8
 
-<<<<<<< HEAD
+"""
+oak log generater
+all logger creater from this interface
+author: TF
+version: 1.0.0
+
+"""
+
 import logging
+from logging.handlers import RotatingFileHandler
 
-def setup_logger(name: str, log_file: str, level=logging.INFO):
-    """
-    gen a logger with given config
-    """
-
+def get_logger(name, file, level=logging.INFO) ->logging.Logger:
     logger = logging.getLogger(name)
-    handle_sh = logging.StreamHandler()
-    handle_fh = logging.FileHandler(log_file)
+    handler = logging.Handler(level=level)
+    file_handler = RotatingFileHandler(file, "a", maxBytes=10*1024*1024, backupCount=5, encoding="utf-8")
+    formater = logging.Formatter('[%(levelname)s] [%(asctime)s] [%(filename)s]: %(message)s')
+    #logger.addHandler(handler.setFormatter(formater))
+    handler.setFormatter(formater)
+    file_handler.setFormatter(formater)
 
-    formatter = logging.Formatter('[%(levelname)s] [%(asctime)s] [%(filename)s]: %(message)s')
-
-    handle_sh.setFormatter(formatter)
-    handle_fh.setFormatter(formatter)
-
-    logger.addHandler(handle_fh)
-    logger.addHandler(handle_sh)
-    # set the logger level if not something will miss
-    logger.setLevel(level=level)
-
+    logger.addHandler(handler)
+    logger.addHandler(file_handler)
     return logger
-
-    
-=======
-# TODO
-# done in home
-import logging
-
-
-def setup_logger(name:str, file:str, level=logging.INFO):
-    logger = logging.getLogger()
-    return logger 
->>>>>>> fb9384fbe42c6cbb3e0656ecc8a01519dfab7551

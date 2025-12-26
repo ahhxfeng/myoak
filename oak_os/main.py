@@ -1,19 +1,31 @@
 #coding=utf-8
 
-import argparse
+import logging
 import time
-
-import logger
+from . import client
+from . import config
+from .logger import get_logger
 
 def main():
-    parser = argparse.ArgumentParser(description="process some interger about the miner os program")
-    parser.add_argument("--command_interval", type=int, default=5, help="interval between command loop resquest(second)")
-    parser.add_argument("--report_interval", type=int, default=15, help="interval between report requests( second )")
-    parser.add_argument("--log_scan_interval", type=int, default=30, help="interval between log scan and upload requests (second)")
-    parser.add_argument("--miner_interval", type=int, default=10, help="interval between miner requests (second)")
-    args = parser.parse_args()
+    #args parse
 
+    c = client.Collecter(config=config.CollectorConfiguration)
     time.sleep(5)
-    # client collector
 
+    #init logger
+    warn_logger = get_logger("client_warn", config.CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main_err.log", level=logging.WARNING)
+    info_logger = get_logger("client_info", config.CollectorConfiguration["ERROR_LOG_DIR"][0]+"python_main.log", level=logging.INFO)
 
+    # main thread report hashrate
+    while True:
+        try:
+            c.report_handler()
+        except Exception as e:
+            #warn_logger.warning(e)
+            warn_logger.exception(e)
+            #info_logger.info(e)
+            info_logger.exception(e)
+        time.sleep(2)
+
+if __name__ == "__main__":
+    main()
