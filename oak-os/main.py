@@ -2,9 +2,9 @@
 
 import logging
 import time
-from . import client
-from . import config
-from .logger import get_logger
+import client
+import config
+from logger import get_logger
 
 def main():
     #args parse
@@ -14,7 +14,8 @@ def main():
 
     #init logger
     warn_logger = get_logger("client_warn", config.CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main_err.log", level=logging.WARNING)
-    info_logger = get_logger("client_info", config.CollectorConfiguration["ERROR_LOG_DIR"][0]+"python_main.log", level=logging.INFO)
+    info_logger = get_logger("client_info", config.CollectorConfiguration.get("ERROR_LOG_DIR")+"python_main.log", level=logging.INFO)
+    #info_logger = get_logger("client_info", config.CollectorConfiguration["ERROR_LOG_DIR"][0]+"python_main.log", level=logging.INFO)
 
     # main thread report hashrate
     while True:
@@ -28,4 +29,5 @@ def main():
         time.sleep(2)
 
 if __name__ == "__main__":
+    print("Oak main start ")
     main()
