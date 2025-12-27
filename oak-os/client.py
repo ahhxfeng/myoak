@@ -17,8 +17,9 @@ import re
 import wget
 
 
-from . import tools
-from . import logger
+import tools
+import logger
+from config import CollectorConfiguration
 
 class NoAccountError(Exception):
     pass
@@ -82,8 +83,8 @@ class Collecter():
     def __init__(self, config):
         self.config = config
 
-        self.info_log = logger.get_logger("oak_info", level=logging.INFO)
-        self.warn_log = logger.get_logger("oak_warn", level=logging.WARN)
+        self.info_log = logger.get_logger("oak_info", CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main.log", level=logging.INFO)
+        self.warn_log = logger.get_logger("oak_warn", CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main_err.log", level=logging.WARN)
 
     def _read_account(self, path):
         account, rig_name = tools.read_account(path)
