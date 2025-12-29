@@ -141,7 +141,8 @@ class Collecter():
         # get the current verson on server
         pass
     def report_handler(self):
-        pass
+        #TODO
+        
     def miner_handler(self):
         pass
     def command_handler(self):

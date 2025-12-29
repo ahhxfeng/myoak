@@ -13,8 +13,8 @@ def main():
     time.sleep(5)
 
     #init logger
-    warn_logger = get_logger("client_warn", config.CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main_err.log", level=logging.WARNING)
-    info_logger = get_logger("client_info", config.CollectorConfiguration.get("ERROR_LOG_DIR")+"python_main.log", level=logging.INFO)
+    warn_logger = get_logger("client_warn", config.CollectorConfiguration["ERROR_LOG_DIR"] + "python_main_err.log", level=logging.WARNING)
+    info_logger = get_logger("client_info", config.CollectorConfiguration["LOG_DIR"] + "python_main.log", level=logging.INFO)
     #info_logger = get_logger("client_info", config.CollectorConfiguration["ERROR_LOG_DIR"][0]+"python_main.log", level=logging.INFO)
 
     # main thread report hashrate
