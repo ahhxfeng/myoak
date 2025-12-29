@@ -13,8 +13,7 @@ import pynvml
 
 
 def detect_video_system()->str:
-    #MOUDLE_AMD=subprocess.check_output("lsmod | grep amdgpu | wc -l", shell=True)
-    MOUDLE_AMD = 1
+    MOUDLE_AMD=subprocess.check_output("lsmod | grep amdgpu | wc -l", shell=True)
     if int(MOUDLE_AMD) > 0:
         return "AMD"
     MOUDLE_NVIDIA = subprocess.check_output("lsmod | grep nvidia | wc -l", shell=True)
@@ -46,8 +45,8 @@ def get_video_card_info():
     """
     sys_type = detect_video_system()
     if sys_type == "NVIDIA":
-        pass
-
+        info = gather_nvidia_card_info()
+        print("info {}".format(info))
 def gather_nvidia_card_info():
     """
     gather_nvidia_card_info
@@ -56,12 +55,12 @@ def gather_nvidia_card_info():
     
     """
 
+    card_info = []
     try:
         # pynvml 初始化
         pynvml.nvmlInit()
         devices_count = pynvml.nvmlDeviceGetCount()
         print("检测到 {} 张显卡".format(devices_count))
-        card_info = []
         for d in range(devices_count):
             # 获取设备句柄
             handle = pynvml.nvmlDeviceGetHandleByIndex(d)
@@ -80,6 +79,7 @@ def gather_nvidia_card_info():
         print("nvml Error {}".format(e))
     except Exception as e:
         print("exception {}".format(e))
+    return card_info
 
 
 
