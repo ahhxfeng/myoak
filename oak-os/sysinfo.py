@@ -46,6 +46,8 @@ def get_video_card_info():
     sys_type = detect_video_system()
     if sys_type == "NVIDIA":
         info = gather_nvidia_card_info()
+        if info is None:
+            return None
         print("info {}".format(info))
 def gather_nvidia_card_info():
     """
@@ -71,7 +73,7 @@ def gather_nvidia_card_info():
             memory = pynvml.nvmlDeviceGetMemoryInfo(handle)
             memory_clock = pynvml.nvmlDeviceGetClockInfo(handle, pynvml.NVML_CLOCK_MEM)
 
-            card_info.append(dict(name=name, temp=temp, fan_speed=fan_speed, memory=memory, memory_clock=memory_clock))
+            card_info.append(dict(name=name, temp=temp, fan_speed=fan_speed, memory=memory.used, memory_clock=memory_clock))
 
         # 关闭 pynvml
         pynvml.nvmlShutdown()
