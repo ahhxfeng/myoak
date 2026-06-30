@@ -37,7 +37,8 @@ func RedisUpdateRig(ctx context.Context, deviceId string, args []interface{}) er
 	key := "rig:" + deviceId
 	args[0] = key
 
-	_, err := RedisClient.Do(ctx, "HMSET", args).Result()
+	redisArgs := append([]interface{}{"HMSET"}, args...)
+	_, err := RedisClient.Do(ctx, redisArgs...).Result()
 	return err
 }
 

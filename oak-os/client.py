@@ -20,6 +20,7 @@ import wget
 import tools
 import logger
 from config import CollectorConfiguration
+from sysinfo import get_video_card_info
 
 class NoAccountError(Exception):
     pass
@@ -83,6 +84,7 @@ class Collecter():
     def __init__(self, config):
         self.config = config
 
+        self.account = self._read_account(self.config.get(""))
         self.info_log = logger.get_logger("oak_info", CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main.log", level=logging.INFO)
         self.warn_log = logger.get_logger("oak_warn", CollectorConfiguration["ERROR_LOG_DIR"][0] + "python_main_err.log", level=logging.WARN)
 
@@ -141,7 +143,19 @@ class Collecter():
         # get the current verson on server
         pass
     def report_handler(self):
-        pass
+        #TODO
+        """
+        report_handler 的 Docstring
+        
+        :param self: 说明
+        report gather card info to report server 
+        """
+        data = get_video_card_info()
+        if data is None:
+            return
+        # transport to the report server 
+        
+        
     def miner_handler(self):
         pass
     def command_handler(self):

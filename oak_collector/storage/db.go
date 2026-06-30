@@ -42,10 +42,10 @@ type RigGroup struct {
 }
 
 func InitDb() {
-	// userCache := make(map[string]*User)
-	// rigCache := make(map[string]*Rig)
-	// dirtyRig := make(map[string]*Rig)
-	// rigGroupCache := make(map[string]*RigGroup)
+	userCache = make(map[string]*User)
+	rigCache = make(map[string]*Rig)
+	dirtyRig = make(map[string]*Rig)
+	rigGroupCache = make(map[int]*RigGroup)
 
 	go func() {
 		for {
@@ -66,7 +66,7 @@ func InitDb() {
 func ConnectIfNil() (Db *gorm.DB, err error) {
 	// dsn := "user:pass@tcp(127.0.0.1:3306)/dbname?charset=utf8mb4&parseTime=True&loc=Local"
 	// dsn := //think:123456@localhost/oak?charset=utf8"
-	dsn := "think:123456@tcp(127.0.0.1:3306)/oak?charset=utf8mb4&parseTime=True&loc=Local"
+	dsn := config.Conf.DatabaseDsn
 	SqlDB, err := sql.Open("mysql", dsn)
 	if err != nil {
 		log.Logger.Info("mysql connect fialed")
@@ -88,19 +88,20 @@ func DbDownload() {
 	// Db 全量更新 慢！
 	log.Logger.Info("Db downlaod start !")
 	defer func() {
-		log.Logger.Info("Db downlaod complted", "users:", len(userCache), "rigs: ", len(rigCache), "rigGroups: ", len(rigGroupCache))
+		log.Logger.Info("Db downlaod complted", "users", len(userCache), "rigs", len(rigCache), "rigGroups", len(rigGroupCache))
 
 	}()
 
-	Db, err := ConnectIfNil()
+	dbConn, err := ConnectIfNil()
 	if err != nil {
 		return
 	}
+	Db = dbConn
 
 	// user
 	newUserCache := make(map[string]*User)
 	err = func() error {
-		rows, err := Db.Table("users").Select("id", "user_name", "status").Rows()
+		rows, err := dbConn.Table("users").Select("id", "user_name", "status").Rows()
 		if err != nil {
 			log.Logger.Warn(err.Error())
 			return err
@@ -108,7 +109,7 @@ func DbDownload() {
 		defer rows.Close()
 		for rows.Next() {
 			item := &User{}
-			err = rows.Scan(item.Id, item.UserName, item.Status)
+			err = rows.Scan(&item.Id, &item.UserName, &item.Status)
 			if err != nil {
 				log.Logger.Warn(err.Error())
 				continue
@@ -120,7 +121,7 @@ func DbDownload() {
 	}()
 
 	if err != nil {
-		log.Logger.Warn("update oak_user failed: ", err.Error(), "")
+		log.Logger.Warn("update oak_user failed", "error", err.Error())
 		return
 	}
 
@@ -129,7 +130,7 @@ func DbDownload() {
 	newDeviceCache := make(map[string]*Rig)
 
 	err = func() error {
-		rows, err := Db.Table("rigs").Select("id", "user_id", "rig_group_id", "device_id").Rows()
+		rows, err := dbConn.Table("rigs").Select("id", "user_id", "rig_group_id", "device_id").Rows()
 		if err != nil {
 			log.Logger.Warn(err.Error())
 			return err
@@ -137,7 +138,7 @@ func DbDownload() {
 		defer rows.Close()
 		for rows.Next() {
 			item := &Rig{}
-			err = rows.Scan(item.Id, item.UserId, item.RigGroupId, item.DeviceId)
+			err = rows.Scan(&item.Id, &item.UserId, &item.RigGroupId, &item.DeviceId)
 			if err != nil {
 				log.Logger.Warn(err.Error())
 				continue
@@ -148,7 +149,7 @@ func DbDownload() {
 	}()
 
 	if err != nil {
-		log.Logger.Warn("update oak_rig failed: ", err.Error(), "")
+		log.Logger.Warn("update oak_rig failed", "error", err.Error())
 		return
 	}
 
@@ -156,7 +157,7 @@ func DbDownload() {
 
 	newRigGroupCache := make(map[int]*RigGroup)
 	err = func() error {
-		rows, err := Db.Table("rig_groups").Select("id", "user_id", "config", "status").Rows()
+		rows, err := dbConn.Table("rig_groups").Select("id", "user_id", "config", "status").Rows()
 		if err != nil {
 			log.Logger.Warn(err.Error())
 			return err
@@ -164,7 +165,7 @@ func DbDownload() {
 		defer rows.Close()
 		for rows.Next() {
 			item := &RigGroup{}
-			err = rows.Scan(item.Id, item.UserId, item.Config, item.Status)
+			err = rows.Scan(&item.Id, &item.UserId, &item.Config, &item.Status)
 			if err != nil {
 				log.Logger.Warn(err.Error())
 				continue
@@ -175,7 +176,7 @@ func DbDownload() {
 	}()
 
 	if err != nil {
-		log.Logger.Warn("update oak_rig_group failed", err.Error(), "")
+		log.Logger.Warn("update oak_rig_group failed", "error", err.Error())
 		return
 	}
 
@@ -199,11 +200,22 @@ func DbUpload() {
 
 	// log.Logger.Info("Db upload start !", len(dirtyRig), dirtyRig)
 	log.Logger.Info("DB upload start !!!\n")
-	log.Logger.Info("found new rigs", "rigs amount", len(dirtyRig))
+	log.Logger.Info("found new rigs", "rigs_amount", len(dirtyRig))
 	log.Logger.Info("Dirty rigs", "info", dirtyRig)
+	if Db == nil {
+		dbConn, err := ConnectIfNil()
+		if err != nil {
+			log.Logger.Warn("connect db failed", "error", err.Error())
+			return
+		}
+		Db = dbConn
+	}
 	for _, rig := range dirtyRig {
-		res := Db.Exec("insert into oak_rig (user_id, device_id, status) values (?, ?, ?)", rig.UserId, rig.DeviceId, rig.Status)
-		res.Commit()
+		res := Db.Exec("insert into rigs (user_id, device_id, status) values (?, ?, ?)", rig.UserId, rig.DeviceId, rig.Status)
+		if res.Error != nil {
+			log.Logger.Warn(res.Error.Error())
+			continue
+		}
 		// rig.Id = res.Last()
 
 		// dirty 表移动到正式表
@@ -219,7 +231,7 @@ func DbCheckUserPrivilege(userName string) (user *User, ok bool) {
 	defer cacheLock.RUnlock()
 	user, ok = userCache[userName]
 	if !ok {
-		log.Logger.Warn("user not found:", "user: ", userName)
+		log.Logger.Warn("user not found", "user", userName)
 		return
 	} else if user.Status != "normal" {
 		ok = false
@@ -308,7 +320,7 @@ func DbGetRigDeviceIdInRigGroup(rigGroupId int) (result []*Rig) {
 	result = make([]*Rig, 0)
 	// s := `SELECT id, user_id, device_id, status FROM oak_rig WHERE rig_group_id = ?`
 	// rows, err := Db.Q(s, rigGroupId)
-	rows, err := Db.Table("oak_rig").Select("id", "user_id", "device_id", "status").Where("rig_group_id = ?", rigGroupId).Rows()
+	rows, err := Db.Table("rigs").Select("id", "user_id", "device_id", "status").Where("rig_group_id = ?", rigGroupId).Rows()
 	if err != nil {
 		log.Logger.Warn(err.Error())
 		return

@@ -25,15 +25,17 @@ import (
 // }
 
 type reportRequest struct {
-	UserName     string                `json:"account"`
-	DeviceId     string                `json:"device"`
-	HashRate     *map[string][]float64 `json:"hashrate"`
-	Temperature  *[]int32              `json:"temperature"`
-	GpuFrequency *[]int32              `json:"gpu_freq"`
-	MemFrequency *[]int32              `json:"mem_freq"`
-	GpuCount     *int32                `json:"gpu_count"`
-	FanSpeed     *[]int32              `json:"fan_speed"`
-	TagName      string                `json:"tag_name"`
+	UserName     string                 `json:"account"`
+	DeviceId     string                 `json:"device"`
+	RigName      string                 `json:"rig_name"`
+	HashRate     *map[string][]float64  `json:"hashrate"`
+	Temperature  *[]int32               `json:"temperature"`
+	GpuFrequency *[]int32               `json:"gpu_freq"`
+	MemFrequency *[]int32               `json:"mem_freq"`
+	GpuCount     *int32                 `json:"gpu_count"`
+	FanSpeed     *[]int32               `json:"fan_speed"`
+	TagName      string                 `json:"tag_name"`
+	Machine      map[string]interface{} `json:"machine"`
 }
 
 type User struct {
@@ -62,7 +64,7 @@ func OnReport(c *gin.Context) {
 
 	if reportData.UserName == "" || reportData.DeviceId == "" {
 		// debug
-		log.Logger.Warn("try to print the request", reportData)
+		log.Logger.Warn("try to print the request", "report", reportData)
 
 		c.JSON(400, FormatReponse.NewResponse(400, "empty parmter", ""))
 		return
@@ -80,6 +82,7 @@ func OnReport(c *gin.Context) {
 		c.JSON(404, FormatReponse.NewResponse(404, "no such rig", ""))
 		return
 	}
+	c.JSON(200, FormatReponse.NewResponse(200, "success", ""))
 
 	// async ,post hook
 	// cCp = c.Copy()
@@ -152,9 +155,34 @@ func OnReport(c *gin.Context) {
 			updateRedis = append(updateRedis, "tag_name")
 			updateRedis = append(updateRedis, string(jsonString))
 		}
+		if reportData.RigName != "" {
+			updateRedis = append(updateRedis, "rig_name")
+			updateRedis = append(updateRedis, reportData.RigName)
+		}
+		if reportData.Machine != nil {
+			jsonString, _ := json.Marshal(reportData.Machine)
+			updateRedis = append(updateRedis, "machine")
+			updateRedis = append(updateRedis, string(jsonString))
+
+			if cpu, ok := reportData.Machine["cpu"]; ok {
+				jsonString, _ := json.Marshal(cpu)
+				updateRedis = append(updateRedis, "cpu")
+				updateRedis = append(updateRedis, string(jsonString))
+			}
+			if memory, ok := reportData.Machine["memory"]; ok {
+				jsonString, _ := json.Marshal(memory)
+				updateRedis = append(updateRedis, "memory")
+				updateRedis = append(updateRedis, string(jsonString))
+			}
+			if gpus, ok := reportData.Machine["gpus"]; ok {
+				jsonString, _ := json.Marshal(gpus)
+				updateRedis = append(updateRedis, "gpus")
+				updateRedis = append(updateRedis, string(jsonString))
+			}
+		}
 
 		if len(updateRedis) > 1 {
-			log.Logger.Info("report: \n", "user: ", reportData.UserName, "device: ", reportData.DeviceId, "info", updateRedis)
+			log.Logger.Info("report", "user", reportData.UserName, "device", reportData.DeviceId, "info", updateRedis)
 			ctx := context.Background()
 			err := storage.RedisUpdateRig(ctx, reportData.DeviceId, updateRedis)
 			if err != nil {

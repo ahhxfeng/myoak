@@ -21,8 +21,7 @@ func InitStatsd() {
 	if err != nil {
 		log.Logger.Error(err.Error())
 	}
-	stats := statsd.NewStatsdBuffer(time.Second*2, statsdClient)
-	defer stats.Close()
+	Statsd = statsd.NewStatsdBuffer(time.Second*2, statsdClient)
 
 	SafeStatsdKeyRegex, err = regexp.Compile(`[^a-zA-Z0-9]`)
 	if err != nil {
