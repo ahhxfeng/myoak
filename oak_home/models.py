@@ -16,9 +16,9 @@ class User(UserMixin, db.Model):
     telephone = db.Column(db.String(64), unique=True, server_default="")
     
     # 反链
-    wallet = db.relationship("Wallet", backref="user", lazy="dynmic")
-    rig = db.relationship("Rig", backref="user", lazy="dynmic")
-    rig_group = db.relationship("RigGroup", backref="user", lazy="dynmic")
+    wallet = db.relationship("Wallet", backref="user", lazy="dynamic")
+    rig = db.relationship("Rig", backref="user", lazy="dynamic")
+    rig_group = db.relationship("RigGroup", backref="user", lazy="dynamic")
 
     @property
     def password():
@@ -71,7 +71,7 @@ class RigGroup(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey("users.id"))
 
     # 反链
-    rig = db.relationship("Rig", backref="rig_group", lazy="dynmic")
+    rig = db.relationship("Rig", backref="rig_group", lazy="dynamic")
 
     # config是json, 包含type, main_pool, main_protocol, spare_pool, spare_protocol
     config = db.Column(db.String(MAX_CONFIG), nullable=False, server_default='{}')
@@ -196,7 +196,6 @@ class RigGroupWalletStatsHourly(db.Model):
         self.sample_count = 0
         self.sum_hashrate_recent = 0
         self.sum_hashrate_average = 0
-
 
 
 

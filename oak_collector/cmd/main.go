@@ -87,7 +87,7 @@ func main() {
 
 	router := api.SetupRouter()
 	storage.InitDb()
-	storage.InitRedis()
+	storage.RedisClient = storage.InitRedis()
 	storage.InitStatsd()
 
 	endless.ListenAndServe("0.0.0.0:8080", router)
